@@ -60,7 +60,7 @@ This package will handle sending the mail and the authentication view for you.
 
 ## Sending the login email
 
-To send an email manually, use the `MailLogin` facade with the user credentials. You can also use an email string.
+To send an email manually, use the facade `MailLogin::to($email)` with the user credentials. You can also use an email string.
 
 ```php
 use Illuminate\Http\Request;
@@ -69,12 +69,14 @@ use Laragear\MailLogin\Facades\MailLogin;
 public function sendLoginMail(Request $request)
 {
     $request->validate(['email' => 'required|email|exists:users']);
+    
+    MailLogin::to($request->email)
 
     return back();
 }
 ```
 
-Since there may be times when the email of the user is not `email` but something else, like `mail` or `email_address`, you can change the email key using `emailIs()`.
+Since there may be times when the email of the user is not under the `email` attribute, but something else, like `mail` or `email_address`, you can change the email key using `emailIs()`.
 
 ```php
 MailLogin::emailIs('email_address')->to(...);
@@ -102,7 +104,7 @@ use Laragear\MailLogin\Facades\MailLogin;
 MailLogin::idempotent(60 * 3)->to(...);
 ```
 
-> The idempotency key uses your default cache. You can change the cache in the [config](#idempotency).
+> **Note** The idempotency key uses your default cache. You can change the cache in the [config](#idempotency).
 
 ### URL
 
@@ -114,7 +116,7 @@ use Laragear\MailLogin\Facades\MailLogin;
 MailLogin::route('editor.login', ['theme' => 'blue'])->to(...);
 ```
 
-> The named route must exist. This route should show a form to login, **not** login the user immediately. See [Login in from a mail](#login-in-from-a-mail).
+> **Note** The named route must exist. This route should show a form to login, **not** login the user immediately. See [Login in from a mail](#login-in-from-a-mail).
 
 ## Login in from a Mail
 
@@ -242,7 +244,7 @@ return [
 ]
 ``` 
 
-To avoid pushing multiple mails to your server, you may want to only send one mail inside a time window. For idempotency to work, it requires the cache. Here are the cache to use (if not default) and the key prefix.
+To avoid pushing the same login mail multiple times, you may want to only send one mail inside a time window. For idempotency to work, it requires the cache. Here are the cache to use (if not default) and the key prefix.
 
 ## Laravel Octane Compatibility
 
