@@ -1,4 +1,4 @@
-## Login Mail
+# Login Mail
 
 Authenticate users through their email, no password needed.
 
@@ -20,11 +20,9 @@ public function login(LoginByMailRequest $request)
 }
 ```
 
-## Keep this package free
+## [This private package is only available for Sponsors](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
 
-This private package is **only available for Sponsors**.
-
-[Become one and get instant access](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
+Become one and get instant access [by signing up here](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
 
 ## 5 minutes quickstart
 
