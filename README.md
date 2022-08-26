@@ -1,4 +1,4 @@
-# Login Mail
+# Mail Login
 
 Authenticate users through their email, no password needed.
 
