@@ -20,9 +20,11 @@ public function login(LoginByMailRequest $request)
 }
 ```
 
-## [This private package is only available for Sponsors](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
+## [Sponsors get it](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
 
-Become one and get instant access [by signing up here](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
+[![](sponsors.png)](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
+
+[Become a Sponsor and get instant access to this package here](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false).
 
 ## 5 minutes quickstart
 
