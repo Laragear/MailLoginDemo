@@ -44,7 +44,7 @@ use Laragear\MailLogin\Facades\MailLogin;
 
 Route::view('welcome');
 
-// Register the default Passmail routes
+// Register the default MailLogin routes and controllers.
 MailLogin::routes();
 ```
 
