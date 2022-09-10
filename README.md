@@ -1,7 +1,5 @@
 # Mail Login
 
-[![Latest stable test run](https://github.com/Laragear/MailLogin/workflows/Tests/badge.svg)](https://github.com/Laragear/MailLogin/actions)
-
 Authenticate users through their email, 1 minute installation.
 
 ```html
