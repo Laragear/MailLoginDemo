@@ -1,23 +1,15 @@
 # Mail Login
 
-Authenticate users through their email, no password needed.
+[![Latest stable test run](https://github.com/Laragear/MailLogin/workflows/Tests/badge.svg)](https://github.com/Laragear/MailLogin/actions)
 
-```php
-use Laragear\MailLogin\Facades\MailLogin;
-use Laragear\MailLogin\Http\Requests\LoginByMailRequest;
-use Illuminate\Http\Request;
+Authenticate users through their email, 1 minute installation.
 
-public function sendLoginMail(Request $request)
-{
-    MailLogin::to($request->email);
-	
-    return 'Check your email with a link to login!';
-}
-
-public function login(LoginByMailRequest $request)
-{
-    return "Welcome back, {$request->user()->name}";
-}
+```html
+<form method="post" action="/login/mail/send">
+    @csrf
+    <input type="email" name="email" placeholder="me@email.com">
+    <button type="submit">Log in</button>
+</form>
 ```
 
 ## [Download it](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false)
@@ -26,14 +18,14 @@ public function login(LoginByMailRequest $request)
 
 [Become a Sponsor and get instant access to this package](https://github.com/sponsors/DarkGhostHunter/sponsorships?sponsor=DarkGhostHunter&tier_id=195147&preview=false).
 
-## 5 minutes quickstart
+## 1 minute quickstart
 
 Login Mail is very simple to install: put the email of the user you want to authenticate in a form, and a mail will be sent to him with a link to authenticate.
 
 First, publish the controllers to automatically log in the user. You will receive the `app\Http\Controllers\MailLogin\MailLoginController.php` file you can freely edit.
 
 ```shell
-php artisan vendor:publish --provider="Laragear\LoginMail\LoginMailServiceProvider" --tag="controllers"
+php artisan vendor:publish --provider="Laragear\MailLogin\MailLoginServiceProvider" --tag="controllers"
 ```
 
 Then, register the routes in your application by just calling `MailLogin::routes()`, like inside your `web.php` routes file.
@@ -44,11 +36,11 @@ use Laragear\MailLogin\Facades\MailLogin;
 
 Route::view('welcome');
 
-// Register the default MailLogin routes and controllers.
+// Register the default Mail Login routes
 MailLogin::routes();
 ```
 
-Finally, add a "login" box that asks the user its email and sends an email by posting it to `login/mail/send`.
+Finally, add a "login" box that receives the user email by making a `POST` to `login/mail/send`.
 
 ```html
 <form method="post" action="/login/mail/send">
@@ -62,7 +54,7 @@ This package will handle sending the mail and the authentication view for you.
 
 ## Sending the login email
 
-To send an email manually, use the facade `MailLogin::to($email)` with the user credentials. You can also use an email string.
+To send an email manually, use the `MailLogin` facade with the user credentials. You can also use an email string.
 
 ```php
 use Illuminate\Http\Request;
@@ -70,15 +62,15 @@ use Laragear\MailLogin\Facades\MailLogin;
 
 public function sendLoginMail(Request $request)
 {
-    $request->validate(['email' => 'required|email|exists:users']);
-    
-    MailLogin::to($request->email)
+    $request->validate(['email' => 'required|email'])
+
+    MailLogin::to($request->email);
 
     return back();
 }
 ```
 
-Since there may be times when the email of the user is not under the `email` attribute, but something else, like `mail` or `email_address`, you can change the email key using `emailIs()`.
+Since there may be times when the email of the user is not `email` but something else, like `mail` or `email_address`, you can change the email key using `emailIs()`.
 
 ```php
 MailLogin::emailIs('email_address')->to(...);
@@ -86,7 +78,7 @@ MailLogin::emailIs('email_address')->to(...);
 
 ### Specifying the guard
 
-By default, is uses the application default guard. You may want to change the default guard in the configuration, or change it at runtime using `guard()`:
+By default, is uses the application default guard, which in most _vanilla_ Laravel applications is `web`. You may want to change the default guard in the configuration, or change it at runtime using `guard()`:
 
 ```php
 use Laragear\MailLogin\Facades\MailLogin;
@@ -96,7 +88,7 @@ MailLogin::guard('admins')->to(...);
 
 ### Idempotent email
 
-To avoid using a Rate Limiter, or sending multiple emails, you may want to make the mailing idempotent, meaning, that subsequent requests to send the email will do nothing before a brief period of time.
+To avoid sending multiple emails you may want to make the mailing _idempotent_, meaning, that subsequent requests to send the email will do nothing before a brief period of time.
 
 Use the `idempotent()` method, optionally with the amount of seconds you want to keep the idempotency.
 
@@ -106,7 +98,8 @@ use Laragear\MailLogin\Facades\MailLogin;
 MailLogin::idempotent(60 * 3)->to(...);
 ```
 
-> **Note** The idempotency key uses your default cache. You can change the cache in the [config](#idempotency).
+> **Note**
+> The idempotency key uses your application Rate Limiter. You can configure the rate limiting in the [config](#idempotency).
 
 ### URL
 
@@ -118,13 +111,14 @@ use Laragear\MailLogin\Facades\MailLogin;
 MailLogin::route('editor.login', ['theme' => 'blue'])->to(...);
 ```
 
-> **Note** The named route must exist. This route should show a form to login, **not** login the user immediately. See [Login in from a mail](#login-in-from-a-mail).
+> **Warning**
+> The named route must exist. This route should show a form to login, **not** login the user immediately. See [Login in from a mail](#login-in-from-a-mail).
 
 ## Login in from a Mail
 
-The Login is a two-part system: the user reaches the signed route to press a button, and a secondary controller action authenticates the user. Additional user interactivity is required because some **email clients will preload / cache / prefetch the login link**. This happens to filter malicious links to other sites, but for us, it would authenticate the user by accident.
+The Login is a two-part system: the user reaches the signed route with a form, and the form fires to authenticate the user. This is required because some **email clients will preload / cache / prefetch the login link**, usually to filter malicious links or cache assets. For us, this means to accidentally authenticate the user.
 
-First, make a route that shows a form to login, and another to authenticate the user. The `mail-login::web-login` will take care to show the form, while the `LoginByMailRequest` will properly authenticate the user automatically so you will only need to return a redirection response.
+First, make a route that shows a form to login, and another to authenticate the user. The `mail-login::web-login` will take care to show the form, while the `LoginByMailRequest` will properly authenticate the user automatically, so you will only need to return a redirection response.
 
 ```php
 use Laragear\MailLogin\Http\Requests\LoginByMailRequest;
@@ -181,7 +175,6 @@ return [
         'view' => 'mail-login::mail.login',
     ],
     'idempotency' => [
-        'store' => null,
         'prefix' => 'mail-login',
     ]
 ];
@@ -196,6 +189,9 @@ return [
 ```
 
 This is the default Authentication Guard to use. When `null`, it fall backs to the application default, which is usually `web`. This used to find user via the guard User Provider, and login users automatically.
+
+> **Check**
+> When sending an email, the guard gets imprinted in the link to avoid changes on the configuration.
 
 ### Route name & View
 
@@ -240,20 +236,19 @@ This specifies which mail driver to use to send the login email, and the queue c
 ```php
 return [
     'idempotency' => [
-        'store' => null,
         'prefix' => 'login-mail',
     ]
 ]
 ``` 
 
-To avoid pushing the same login mail multiple times, you may want to only send one mail inside a time window. For idempotency to work, it requires the cache. Here are the cache to use (if not default) and the key prefix.
+To avoid pushing multiple mails to your server, you may want to only send one mail inside a time window. For idempotency to work, it requires a prefix to avoid collisions with other rate limiting. The default string should be safe for most apps. 
 
 ## Laravel Octane Compatibility
 
 * There are no singletons using a stale application instance.
 * There are no singletons using a stale config instance.
 * There are no singletons using a stale request instance.
-* There are no static properties written during a request.
+* The only static property accessible to write is the `LoginByMailRequest::$destroyOnRegeneration`.
 
 There should be no problems using this package with Laravel Octane.
 
