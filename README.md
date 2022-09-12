@@ -112,11 +112,34 @@ MailLogin::route('editor.login', ['theme' => 'blue'])->to(...);
 > **Warning**
 > The named route must exist. This route should show a form to login, **not** login the user immediately. See [Login in from a mail](#login-in-from-a-mail).
 
+### Modifying the Mailable
+
+The `to()` accepts a third argument as a Closure, which receives the `MailLogin` mailable. You're free to modify the mailable to your liking, like changing the view, or return your own mailable class.
+
+```php
+use Illuminate\Http\Request;
+use Laragear\MailLogin\Facades\MailLogin;
+use Laragear\MailLogin\Mails\LoginMail;
+
+public function sendLoginMail(Request $request)
+{
+    $request->validate(['email' => 'required|email'])
+
+    MailLogin::to($request->email, onMail: function (LoginMail $mailable) {
+        $mailable->view('my-login-email', ['theme' => 'blue']);
+        
+        $mailable->subject('Login to this awesome app');
+    });
+
+    return back();
+}
+```
+
 ## Login in from a Mail
 
 The Login is a two-part system: the user reaches the signed route with a form, and the form fires to authenticate the user. This is required because some **email clients will preload / cache / prefetch the login link**, usually to filter malicious links or cache assets. For us, this means to accidentally authenticate the user.
 
-First, make a route that shows a form to login, and another to authenticate the user. The `mail-login::web-login` will take care to show the form, while the `LoginByMailRequest` will properly authenticate the user automatically, so you will only need to return a redirection response.
+First, make a route that shows a form to login, and another to authenticate the user. The `mail-login::web-login` will take care to show the form, while the `LoginByMailRequest` will authenticate the user, so you will only need to return a redirection response. Both of these routes should be `signed` to avoid tampering with the query parameters, and share the same path.
 
 ```php
 use Laragear\MailLogin\Http\Requests\LoginByMailRequest;
@@ -130,7 +153,7 @@ Route::post('login/mail', fn (LoginByMailRequest $request) => redirect('/dashboa
     ->middleware(['guest', 'signed']);
 ```
 
-Otherwise, you may log in the user manually:
+If you don't want to use the `LoginbyMailRequest` Request, you may log in the user manually:
 
 ```php
 use Illuminate\Support\Facades\Route;
@@ -186,9 +209,9 @@ return [
 ];
 ```
 
-This is the default Authentication Guard to use. When `null`, it fall backs to the application default, which is usually `web`. This used to find user via the guard User Provider, and login users automatically.
+This is the default Authentication Guard to use. When `null`, it fall backs to the application default, which is usually `web`. This is used to find user via the guard User Provider to login users. 
 
-> **Check**
+> **Info**
 > When sending an email, the guard gets imprinted in the link to avoid changes on the configuration.
 
 ### Route name & View
@@ -212,7 +235,7 @@ return [
 ];
 ```
 
-When mailing the link, a signed URL will be generated with an expiration time. You can control how many minutes to keep the link valid until it is detected in the included view form as "expired" and no longer working.
+When mailing the link, a signed URL will be generated with an expiration time. You can control how many minutes to keep the link valid until it is detected as "expired" and no longer works.
 
 ### Mail driver
 
@@ -239,7 +262,7 @@ return [
 ]
 ``` 
 
-To avoid pushing multiple mails to your server, you may want to only send one mail inside a time window. For idempotency to work, it requires a prefix to avoid collisions with other rate limiting. The default string should be safe for most apps. 
+To avoid pushing multiple mails to your server, you may want to only send one mail inside a time window. For idempotency to work, it requires a prefix to avoid collisions with other rate limiters. The default string should be safe for most apps. 
 
 ## Laravel Octane Compatibility
 
